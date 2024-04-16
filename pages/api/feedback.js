@@ -1,7 +1,19 @@
 import fs from "fs";
 import path from "path";
 
-async function handler(req, res) {
+function buildFeedbackPath() {
+  return path.join(process.cwd(), "data", "feedback.json");
+}
+
+function extractFeedback(filePath) {
+  const fileData = fs.readFileSync(filePath, "utf8");
+  const data = JSON.parse(fileData);
+  return data;
+}
+
+function handler(req, res) {
+  const filePath = buildFeedbackPath();
+  const data = extractFeedback(filePath);
   switch (req.method) {
     case "POST":
       const email = req.body.email;
@@ -13,9 +25,6 @@ async function handler(req, res) {
         text: feedbackText,
       };
 
-      const filePath = path.join(process.cwd(), "data", "feedback.json");
-      const fileData = fs.readFileSync(filePath, "utf8");
-      const data = JSON.parse(fileData);
       data.push(newFeedback);
       fs.writeFileSync(filePath, JSON.stringify(data));
 
@@ -23,14 +32,8 @@ async function handler(req, res) {
 
       break;
     case "GET":
-      const feedback = [
-        {
-          id: "1",
-          email: "[email protected]",
-          text: "This is a test feedback!",
-        },
-      ];
-      res.status(200).json({ feedback });
+      res.status(200).json({ feedback: data });
+
       break;
 
     default:
